@@ -9,50 +9,98 @@ Sockets Links.
  server .
 4. Send and receive the message using the send function in socket.
 ## PROGRAM
-## Server:
-```import socket
-# Create TCP socket
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(('localhost', 8000))
-server.listen(1)
+## echo_server:
+```
 
-print("Echo Server is running...")
-print("Waiting for client connection...\n")
+import socket
 
-conn, addr = server.accept()
-print("Connected to client:", addr)
+# Create socket object
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-while True:
-    data = conn.recv(1024).decode()
-    if not data:
-        break
+host = '127.0.0.1'
+port = 5050
 
-    print("Received from client:", data)
-    conn.send(data.encode())  # Echo back
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server_socket.bind((host, port))
 
-conn.close()
-server.close()
+# Listen for connections
+server_socket.listen(1)
+print("Echo Server is waiting for connection...")
+
+# Accept client connection
+client_socket, addr = server_socket.accept()
+print("Connected to:", addr)
+
+try:
+    while True:
+        # Receive message
+        data = client_socket.recv(1024)
+
+        if not data:
+            break
+
+        message = data.decode()
+        print("Client:", message)
+
+        # Send same message back
+        if message.lower() == 'exit':
+            break
+
+        client_socket.sendall(data)
+
+except ConnectionError:
+    print("Client connection was interrupted.")
+
+finally:
+    client_socket.close()
+    server_socket.close()
+    print("Server connection closed.")
+
 ```
 ## Client
-```import socket
-# Create TCP socket
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('localhost', 8000))
+```
 
-while True:
-    msg = input("Enter message (or 'exit' to stop): ")
+import socket
 
-    if msg.lower() == "exit":
-        break
+# Create socket object
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    client.send(msg.encode())
-    reply = client.recv(1024).decode()
-    print("Echo from server:", reply)
+host = '127.0.0.1'
+port = 5050
 
-client.close()
+try:
+    # Connect to server
+    client_socket.connect((host, port))
+    print("Connected to Echo Server")
+
+    while True:
+        message = input("Enter message: ")
+
+        # Send message
+        client_socket.sendall(message.encode())
+
+        if message.lower() == 'exit':
+            break
+
+        # Receive echoed message
+        data = client_socket.recv(1024).decode()
+        print("Server echoed:", data)
+
+except ConnectionError:
+    print("Connection to server lost.")
+
+finally:
+    client_socket.close()
+
+
 ```
 ## OUTPUT
-<img width="1047" height="190" alt="image" src="https://github.com/user-attachments/assets/707b3ba8-60e6-4efa-855e-82e935b8fa2d" />
+## echo_server:
+<img width="1272" height="265" alt="image" src="https://github.com/user-attachments/assets/57cbbf9f-6e20-48e3-be8d-b683accd8b8d" />
+
+## echo_client:
+<img width="1272" height="305" alt="image" src="https://github.com/user-attachments/assets/b08a09db-e051-483a-ac1a-1b6c405fe88f" />
+
 
 ## RESULT
 Thus, the python program for creating Echo Client and Echo Server using TCP Sockets Links 
